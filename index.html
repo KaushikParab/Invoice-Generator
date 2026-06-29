@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proxima Invoice | Premium Generator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="app-header no-print">
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+            Proxima Invoice
+        </div>
+        <div class="header-actions">
+            <button class="icon-btn" onclick="toggleTheme()" title="Toggle Dark Mode">🌓</button>
+        </div>
+    </header>
+
+    <main class="app-layout">
+        
+        <aside class="dashboard-sidebar no-print">
+            
+            <div class="card card-interactive">
+                <h3>Business Details</h3>
+                <div class="input-group">
+                    <input type="text" id="bizName" placeholder="Business Name">
+                    <input type="text" id="bizAddress" placeholder="Business Address">
+                    <input type="text" id="bizContact" placeholder="Contact Info / Email">
+                    <button class="btn btn-primary" onclick="saveSettings()">Save Details</button>
+                </div>
+            </div>
+
+            <div class="card card-interactive">
+                <h3>Inventory Hub</h3>
+                <div class="input-group">
+                    <input type="text" id="prodName" placeholder="Product Name">
+                    <div class="flex-row">
+                        <input type="number" id="prodPrice" placeholder="Price (₹)">
+                        <select id="prodUnit">
+                            <option value="pcs">Pcs</option>
+                            <option value="kg">Kg</option>
+                            <option value="ltr">Ltr</option>
+                            <option value="hr">Hr</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-secondary" onclick="saveProduct()">Add Product</button>
+                </div>
+                <div class="inventory-list-container">
+                    <table class="data-table">
+                        <tbody id="inventoryBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Actions</h3>
+                <div class="action-grid">
+                    <button class="btn btn-outline" onclick="startNewInvoice()">🔄 New Invoice</button>
+                    <button class="btn btn-primary" onclick="validateAndPrint()">🖨️ Print PDF</button>
+                </div>
+            </div>
+            
+        </aside>
+
+        <section class="document-viewer">
+            <div class="invoice-paper" id="invoice">
+                <form id="invoiceForm" onsubmit="event.preventDefault();">
+                    
+                    <header class="invoice-header">
+                        <div class="brand-section">
+                            <h1 id="displayBizName" class="brand-name">Your Business Name</h1>
+                            <p id="displayBizAddress" class="brand-text">Your Address</p>
+                            <p id="displayBizContact" class="brand-text">Your Contact</p>
+                        </div>
+                        <div class="meta-section">
+                            <h2 class="document-title">INVOICE</h2>
+                            <div class="meta-grid">
+                                <span class="meta-label">Invoice #</span>
+                                <span class="meta-value" id="invoiceNum"></span>
+                                <span class="meta-label">Date</span>
+                                <span class="meta-value" id="invoiceDate"></span>
+                            </div>
+                        </div>
+                    </header>
+
+                    <div class="billing-section">
+                        <div class="bill-to">
+                            <h3>Billed To</h3>
+                            <textarea id="clientInfo" placeholder="Client Name & Address (Required)" rows="3" required></textarea>
+                        </div>
+                    </div>
+
+                    <table class="invoice-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40%;">Description</th>
+                                <th style="width: 15%;">Qty</th>
+                                <th style="width: 10%;">Unit</th>
+                                <th style="width: 15%;">Price</th>
+                                <th style="width: 15%;">Total</th>
+                                <th class="no-print" style="width: 5%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsBody">
+                            </tbody>
+                    </table>
+
+                    <div class="financials-section">
+                        <div class="financial-row">
+                            <span>Subtotal</span>
+                            <span>₹<span id="subtotal">0.00</span></span>
+                        </div>
+                        <div class="financial-row no-print">
+                            <span>Discount (%)</span>
+                            <input type="number" id="discountPercent" class="inline-input" value="0" min="0" max="100" oninput="calculateTotals()">
+                        </div>
+                        <div class="financial-row text-muted">
+                            <span>Discount Amt</span>
+                            <span>-₹<span id="discountAmount">0.00</span></span>
+                        </div>
+                        <div class="financial-row text-muted">
+                            <span>Tax (10%)</span>
+                            <span>₹<span id="tax">0.00</span></span>
+                        </div>
+                        <div class="financial-row grand-total">
+                            <span>Total Due</span>
+                            <span>₹<span id="grandTotal">0.00</span></span>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" style="display:none;" id="hiddenSubmit"></button>
+                </form>
+            </div>
+            
+            <div class="card history-card no-print">
+                <div class="card-header">
+                    <h3>Invoice Ledger</h3>
+                    <button class="btn btn-ghost btn-sm" onclick="clearHistory()">Clear All</button>
+                </div>
+                <table class="data-table ledger-table">
+                    <thead>
+                        <tr>
+                            <th>Inv #</th>
+                            <th>Date</th>
+                            <th>Client</th>
+                            <th>Total</th>
+                            <th class="text-right">Action</th> </tr>
+                    </thead>
+                    <tbody id="historyBody"></tbody>
+                </table>
+            </div>
+
+        </section>
+    </main>
+
+    <datalist id="saved-products-list"></datalist>
+    <script src="script.js"></script>
+</body>
+</html>
